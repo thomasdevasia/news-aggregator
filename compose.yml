@@ -1,0 +1,20 @@
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    develop:
+      watch:
+        - action: sync
+          path: ./api-gateway
+          target: /app
+        - action: rebuild
+          path: ./api-gateway/requirements.txt
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=postgres
