@@ -9,7 +9,7 @@ services:
       watch:
         - action: sync
           path: ./api-gateway
-          target: /app
+          target: /code
         - action: rebuild
           path: ./api-gateway/requirements.txt
     environment:
@@ -18,3 +18,32 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=postgres
+    stdin_open: true
+    tty: true
+
+  auth-service:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    develop:
+      watch:
+        - action: sync
+          path: ./auth
+          target: /code
+        - action: rebuild
+          path: ./auth/requirements.txt
+    stdin_open: true
+    tty: true
+
+  postgres:
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres123
+    volumes:
+      - ./db/scripts:/docker-entrypoint-initdb.d
+    stdin_open: true
+    tty: true

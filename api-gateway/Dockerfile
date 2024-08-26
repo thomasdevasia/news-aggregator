@@ -6,7 +6,7 @@ COPY ./requirements.txt /code/requirements.txt
 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-COPY . /code/app
+COPY . /code
 
 # CMD ["fastapi", "run", "app/main.py", "--port", "8080"]
-CMD fastapi dev app/server.py --port 8000 --host 0.0.0.0
+CMD fastapi dev server.py --port 8000 --host 0.0.0.0

@@ -4,4 +4,4 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World from api-gateway service"}
+    return {"Hello": "World from auth service"}
