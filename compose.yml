@@ -47,3 +47,19 @@ services:
       - ./db/scripts:/docker-entrypoint-initdb.d
     stdin_open: true
     tty: true
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/web-app
+          target: /code
+        - action: rebuild
+          path: ./frontend/web-app/package.json
+    stdin_open: true
+    tty: true
