@@ -11,28 +11,79 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { cookies } from "next/headers";
 
 export default function Login() {
-  const [cUserName, setCUserName] = useState<string | null>("");
-  const [cPassword, setCPassword] = useState<string | null>("");
-  const [email, setEmail] = useState<string | null>("");
-  const [name, setName] = useState<string | null>("");
-  const [userName, setUserName] = useState<string | null>("");
-  const [password, setPassword] = useState<string | null>("");
-
-  const handleCreateAccount = () => {
+  const router = useRouter();
+  const handleSubmitCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
     console.log("Create Account");
-    console.log("Name: ", name);
-    console.log("Username: ", cUserName);
-    console.log("Email: ", email);
-    console.log("Password: ", cPassword);
+    console.log("Name: ", formData.get("name"));
+    console.log("Username: ", formData.get("username"));
+    console.log("Email: ", formData.get("email"));
+    console.log("Password: ", formData.get("password"));
+
+    // send the data to the server
+    console.log("sending data to server");
+    async function createUser() {
+      const API_URL = "0.0.0.0:8000";
+      const response = await fetch(`http://${API_URL}/signup`, {
+        method: "POST",
+        body: JSON.stringify({
+          name: formData.get("name"),
+          username: formData.get("username"),
+          email: formData.get("email"),
+          password: formData.get("password"),
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      return data;
+    }
+    const data = await createUser();
+    console.log("Data: ", data);
+
+    // save the token in the local storage if the account is created successfully
+    if (data.token) {
+      document.cookie = `token=${data.token}`;
+      console.log("Token saved in cookies");
+      router.push("/home");
+    }
   };
 
-  const handleLogin = () => {
+  const handleSubmitLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
     console.log("Login");
-    console.log("Username: ", userName);
-    console.log(" Password: ", password);
+    console.log("Username: ", formData.get("username"));
+    console.log("Password: ", formData.get("password"));
+
+    async function loginUser() {
+      const API_URL = "0.0.0.0:8000";
+      // send request to the server as Basic Auth
+      const response = await fetch(`http://${API_URL}/login`, {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${btoa(
+            `${formData.get("username")}:${formData.get("password")}`
+          )}`,
+        },
+      });
+      const data = await response.json();
+      return data;
+    }
+    const data = await loginUser();
+    console.log("Data: ", data);
+
+    if (data.token) {
+      document.cookie = `token=${data.token}`;
+      console.log("Token saved in cookies");
+      router.push("/home");
+    }
   };
 
   return (
@@ -50,43 +101,33 @@ export default function Login() {
                 Create an account to start using the app.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="space-y-1">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  defaultValue="Your Name"
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  defaultValue="Username"
-                  onChange={(e) => setCUserName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  defaultValue="abc@email.com"
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="Create_Password">Password</Label>
-                <Input
-                  id="Create_Password"
-                  type="password"
-                  onChange={(e) => setCPassword(e.target.value)}
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={handleCreateAccount}>Create</Button>
-            </CardFooter>
+            <form onSubmit={handleSubmitCreate}>
+              <CardContent className="space-y-2">
+                <div className="space-y-1">
+                  <Label htmlFor="name">Name</Label>
+                  <Input id="name" defaultValue="Your Name" name="name" />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    defaultValue="Username"
+                    name="username"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" defaultValue="abc@email.com" name="email" />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="Create_Password">Password</Label>
+                  <Input id="Create_Password" type="password" name="password" />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit">Create</Button>
+              </CardFooter>
+            </form>
           </Card>
         </TabsContent>
         <TabsContent value="login">
@@ -97,27 +138,25 @@ export default function Login() {
                 Login to your account to start using the app.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="space-y-1">
-                <Label htmlFor="Username">Username</Label>
-                <Input
-                  id="Username"
-                  defaultValue="Username"
-                  onChange={(e) => setUserName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="Password">Password</Label>
-                <Input
-                  id="Password"
-                  type="password"
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={handleLogin}>Save password</Button>
-            </CardFooter>
+            <form onSubmit={(e) => handleSubmitLogin(e)}>
+              <CardContent className="space-y-2">
+                <div className="space-y-1">
+                  <Label htmlFor="Username">Username</Label>
+                  <Input
+                    id="Username"
+                    defaultValue="Username"
+                    name="username"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="Password">Password</Label>
+                  <Input id="Password" type="password" name="password" />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit">Login</Button>
+              </CardFooter>
+            </form>
           </Card>
         </TabsContent>
       </Tabs>

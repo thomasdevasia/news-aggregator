@@ -1,1 +1,3 @@
 fastapi[standard]
+PyJWT
+psycopg2-binary
