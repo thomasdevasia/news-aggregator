@@ -25,7 +25,7 @@ def hash_password(password):
 
 def create_jwt_token(data):
     to_encode = data.copy()
-    to_encode.update({"exp": datetime.now() + timedelta(minutes=5)})
+    to_encode.update({"exp": datetime.now() + timedelta(minutes=60)})
     to_encode.update({"iat": datetime.now()})
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return encoded_jwt
@@ -37,6 +37,7 @@ def read_root():
     return {"Info": "auth service"}
 
 security = HTTPBasic()
+
 
 @app.post("/login")
 def login(credentials: HTTPBasicCredentials = Depends(security)):

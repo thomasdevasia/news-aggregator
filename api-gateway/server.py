@@ -6,11 +6,13 @@ import logging
 import requests
 
 AUTH_SERVICE_URL = "http://auth-service:8001"
+USER_SERVICE_URL = "http://user-service:8002"
 
 app = FastAPI()
 
 origins = [
     "http://0.0.0.0:3000",
+    "http://localhost:3000",
 ]
 
 app.add_middleware(
@@ -62,3 +64,29 @@ async def validate(request: Request):
         return res
     else:
         raise HTTPException(status_code=401, detail="Unauthorized")
+
+# def validate_token(token):
+#     response = requests.post(f"{AUTH_SERVICE_URL}/validate", headers={"Authorization": token})
+#     if response.status_code == 200:
+#         return response.json()
+#     else:
+#         return False
+
+@app.get("/user/{user_path:path}")
+async def user(request: Request, user_path: str):
+    token = request.headers.get("Authorization")
+    try:
+        body = await request.json()
+    except:
+        body = None
+
+    # is_valid = validate_token(token)
+
+    async with httpx.AsyncClient() as client:
+        if body:
+            response = await client.get(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token}, json=body)
+        else:
+            response = await client.get(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token})
+
+
+    return response.json()

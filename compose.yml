@@ -65,3 +65,26 @@ services:
           path: ./frontend/web-app/package.json
     stdin_open: true
     tty: true
+
+  user-service:
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres123
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=news_app_db
+    develop:
+      watch:
+        - action: sync
+          path: ./user
+          target: /code
+        - action: rebuild
+          path: ./user/requirements.txt
+    stdin_open: true
+    tty: true
+

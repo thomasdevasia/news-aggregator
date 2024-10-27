@@ -1,5 +1,6 @@
 import LogoutButton from "@/components/LogoutButton";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/toaster"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -7,6 +8,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <h1 className="text-4xl font-bold">News-Aggregator</h1>
       <LogoutButton />
       <main>{children}</main>
+      <Toaster />
     </div>
   );
 }

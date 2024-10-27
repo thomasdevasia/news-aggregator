@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { cookies } from "next/headers";
+import { createUserAccount, loginUser } from "@/lib/utils";
 
 export default function Login() {
   const router = useRouter();
@@ -24,27 +25,16 @@ export default function Login() {
     console.log("Username: ", formData.get("username"));
     console.log("Email: ", formData.get("email"));
     console.log("Password: ", formData.get("password"));
-
+    let userData = {
+      name: formData.get("name"),
+      username: formData.get("username"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+    };
     // send the data to the server
     console.log("sending data to server");
-    async function createUser() {
-      const API_URL = "0.0.0.0:8000";
-      const response = await fetch(`http://${API_URL}/signup`, {
-        method: "POST",
-        body: JSON.stringify({
-          name: formData.get("name"),
-          username: formData.get("username"),
-          email: formData.get("email"),
-          password: formData.get("password"),
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await response.json();
-      return data;
-    }
-    const data = await createUser();
+   
+    const data = await createUserAccount(userData);
     console.log("Data: ", data);
 
     // save the token in the local storage if the account is created successfully
@@ -61,22 +51,11 @@ export default function Login() {
     console.log("Login");
     console.log("Username: ", formData.get("username"));
     console.log("Password: ", formData.get("password"));
-
-    async function loginUser() {
-      const API_URL = "0.0.0.0:8000";
-      // send request to the server as Basic Auth
-      const response = await fetch(`http://${API_URL}/login`, {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${btoa(
-            `${formData.get("username")}:${formData.get("password")}`
-          )}`,
-        },
-      });
-      const data = await response.json();
-      return data;
-    }
-    const data = await loginUser();
+    let userData = {
+      username: formData.get("username"),
+      password: formData.get("password"),
+    };
+    const data = await loginUser(userData);
     console.log("Data: ", data);
 
     if (data.token) {
@@ -85,6 +64,7 @@ export default function Login() {
       router.push("/home");
     }
   };
+
 
   return (
     <div className="flex justify-center mt-5">
