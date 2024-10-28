@@ -7,11 +7,11 @@ services:
       - "8000:8000"
     develop:
       watch:
+        - action: rebuild
+          path: ./api-gateway/requirements.txt
         - action: sync
           path: ./api-gateway
           target: /code
-        - action: rebuild
-          path: ./api-gateway/requirements.txt
     stdin_open: true
     tty: true
 
@@ -31,11 +31,11 @@ services:
       - JWT_ALGORITHM=HS256
     develop:
       watch:
+        - action: rebuild
+          path: ./auth/requirements.txt
         - action: sync
           path: ./auth
           target: /code
-        - action: rebuild
-          path: ./auth/requirements.txt
     stdin_open: true
     tty: true
 
@@ -58,11 +58,11 @@ services:
       - "3000:3000"
     develop:
       watch:
+        - action: rebuild
+          path: ./frontend/web-app/package.json
         - action: sync
           path: ./frontend/web-app
           target: /code
-        - action: rebuild
-          path: ./frontend/web-app/package.json
     stdin_open: true
     tty: true
 
@@ -80,11 +80,11 @@ services:
       - DB_NAME=news_app_db
     develop:
       watch:
+        - action: rebuild
+          path: ./user/requirements.txt
         - action: sync
           path: ./user
           target: /code
-        - action: rebuild
-          path: ./user/requirements.txt
     stdin_open: true
     tty: true
 

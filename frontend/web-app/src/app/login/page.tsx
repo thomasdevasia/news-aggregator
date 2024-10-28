@@ -33,13 +33,14 @@ export default function Login() {
     };
     // send the data to the server
     console.log("sending data to server");
-   
+
     const data = await createUserAccount(userData);
     console.log("Data: ", data);
 
     // save the token in the local storage if the account is created successfully
     if (data.token) {
       document.cookie = `token=${data.token}`;
+      localStorage.setItem("token", data.token);
       console.log("Token saved in cookies");
       router.push("/home");
     }
@@ -60,6 +61,7 @@ export default function Login() {
 
     if (data.token) {
       document.cookie = `token=${data.token}`;
+      localStorage.setItem("token", data.token);
       console.log("Token saved in cookies");
       router.push("/home");
     }

@@ -1,4 +1,8 @@
 "use client";
+import { Button } from "./ui/button";
+import { useToast } from "../hooks/use-toast";
+import { updateNewsSelection } from "@/lib/utils";
+
 const topics = [
   { id: "sports", name: "Sports" },
   { id: "politics", name: "Politics" },
@@ -14,10 +18,6 @@ const topics = [
   { id: "education", name: "Education" },
   { id: "lifestyle", name: "Lifestyle" },
 ];
-import { Button } from "./ui/button";
-import { Checkbox } from "./ui/checkbox";
-// import { FormLabel, FormControl, FormItem } from "./ui/form";
-import { useToast } from "../hooks/use-toast";
 
 export default function NewsSelection() {
 
@@ -34,13 +34,32 @@ export default function NewsSelection() {
     // }
     let selectedTopics = topics.filter((topic) => {
       return formData.get(topic.name) === "on";
-      });
-    toast({
-      variant: "destructive",
-      title: "Request to save",
-      description: "Saved successfully",
-    })
+    }).map((topic) => topic.name);
     console.log(selectedTopics);
+
+    const sendTopics = async () => {
+      const response = await updateNewsSelection(selectedTopics);
+      if (response) {
+        toast({
+          variant: "destructive",
+          title: "Request to save",
+          description: "Saved successfully",
+        })
+      }
+      else {
+        toast({
+          variant: "destructive",
+          title: "Request to save",
+          description: "Failed to save",
+        })
+      }
+      // console.log(response);
+      return response;
+    }
+    sendTopics();
+    // console.log(sendTopics());
+
+
   };
 
   return (
@@ -55,7 +74,7 @@ export default function NewsSelection() {
               type="checkbox"
               id={topic.id}
               name={topic.name}
-              />
+            />
             <label className="ml-2" htmlFor={topic.id}>{topic.name}</label>
           </div>
         ))}

@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx"
+import { type } from "os"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -15,7 +16,7 @@ type signupDataType = {
   email: string
   password: string
 }
-export async function createUserAccount(formData : signupDataType) {
+export async function createUserAccount(formData: signupDataType) {
   const response = await fetch(`${API_URL}/signup`, {
     method: "POST",
     body: JSON.stringify({
@@ -47,4 +48,34 @@ export async function loginUser(formData: loginDataType) {
   });
   const data = await response.json();
   return data;
+}
+
+// updating news selection
+// interface NewsSelection {
+//   id: string
+//   name: string
+// }
+export async function updateNewsSelection(topics: String[]) {
+  const API_TEST_URL = "http://api-gateway:8000";
+
+  let requestOptions = {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      topics: topics,
+      action: "update",
+    }),
+  };
+  // console.log(requestOptions)
+  const response = await fetch(`${API_URL}/user/news`, requestOptions);
+  if (!response.ok) {
+    return false;
+  }
+  else {
+    const data = await response.json();
+    return data;
+  }
 }

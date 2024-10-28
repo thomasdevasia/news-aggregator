@@ -75,18 +75,58 @@ async def validate(request: Request):
 @app.get("/user/{user_path:path}")
 async def user(request: Request, user_path: str):
     token = request.headers.get("Authorization")
+
     try:
         body = await request.json()
     except:
         body = None
 
     # is_valid = validate_token(token)
+    try: 
+        async with httpx.AsyncClient() as client:
+            if body:
+                response = await client.get(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token}, json=body)
+            else:
+                response = await client.get(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token})
+    except Exception as e:
+        # print(e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
-    async with httpx.AsyncClient() as client:
-        if body:
-            response = await client.get(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token}, json=body)
-        else:
-            response = await client.get(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token})
+    if response.status_code == 200:
+        return response.json()
+    elif response.status_code == 401:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    elif response.status_code == 404:
+        raise HTTPException(status_code=404, detail="Page not found")
+    else:
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
-    return response.json()
+@app.post("/user/{user_path:path}")
+async def user(request: Request, user_path: str):
+    token = request.headers.get("Authorization")
+
+    try:
+        body = await request.json()
+    except:
+        body = None
+
+    # is_valid = validate_token(token)
+    try: 
+        async with httpx.AsyncClient() as client:
+            if body:
+                response = await client.post(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token}, json=body)
+            else:
+                response = await client.post(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token})
+    except Exception as e:
+        # print(e)
+        raise HTTPException(status_code=500, detail="Internal server error")
+    #
+    if response.status_code == 200:
+        return response.json()
+    elif response.status_code == 401:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    elif response.status_code == 404:
+        raise HTTPException(status_code=404, detail="Page not found")
+    else:
+        raise HTTPException(status_code=500, detail="Internal server error")
