@@ -2,8 +2,8 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
-import logging
-import requests
+# import logging
+# import requests
 
 AUTH_SERVICE_URL = "http://auth-service:8001"
 USER_SERVICE_URL = "http://user-service:8002"
@@ -23,11 +23,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 def read_root():
     return {"info": "api-gateway service"}
 
+
 security = HTTPBasic()
+
 
 @app.post("/login")
 async def login(credentials: HTTPBasicCredentials = Depends(security)):
@@ -35,22 +38,25 @@ async def login(credentials: HTTPBasicCredentials = Depends(security)):
     # Forward the request to the auth service
     async with httpx.AsyncClient() as client:
         response = await client.post(f"{AUTH_SERVICE_URL}/login", auth=(credentials.username, credentials.password))
-    
+
     res = response.json()
     res["status_code"] = response.status_code
     return res
+
 
 @app.post("/signup")
 async def signup(request: Request):
     body = await request.json()
     async with httpx.AsyncClient() as client:
         response = await client.post(f"{AUTH_SERVICE_URL}/createUser", json=body)
-    
+
     res = response.json()
     res["status_code"] = response.status_code
     return res
 
 # verify token . Bearer token authentication
+
+
 @app.post("/validate")
 async def validate(request: Request):
     token = request.headers.get("Authorization")
@@ -58,7 +64,7 @@ async def validate(request: Request):
 
     async with httpx.AsyncClient() as client:
         response = await client.post(f"{AUTH_SERVICE_URL}/validate", headers={"Authorization": token})
-    
+
     if response.status_code == 200:
         res = response.json()
         return res
@@ -72,23 +78,24 @@ async def validate(request: Request):
 #     else:
 #         return False
 
+
 @app.get("/user/{user_path:path}")
 async def user(request: Request, user_path: str):
     token = request.headers.get("Authorization")
 
     try:
         body = await request.json()
-    except:
+    except Exception:
         body = None
 
     # is_valid = validate_token(token)
-    try: 
+    try:
         async with httpx.AsyncClient() as client:
             if body:
                 response = await client.get(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token}, json=body)
             else:
                 response = await client.get(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token})
-    except Exception as e:
+    except Exception:
         # print(e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
@@ -108,17 +115,17 @@ async def user(request: Request, user_path: str):
 
     try:
         body = await request.json()
-    except:
+    except Exception:
         body = None
 
     # is_valid = validate_token(token)
-    try: 
+    try:
         async with httpx.AsyncClient() as client:
             if body:
                 response = await client.post(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token}, json=body)
             else:
                 response = await client.post(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token})
-    except Exception as e:
+    except Exception:
         # print(e)
         raise HTTPException(status_code=500, detail="Internal server error")
     #
