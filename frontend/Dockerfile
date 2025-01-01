@@ -7,13 +7,21 @@ ENV NODE_ENV development
 WORKDIR /code
 
 COPY ./web-app/package*.json ./
-RUN npm install
+# Copy the rest of the source files into the image.
+COPY ./web-app/ .
+
+# RUN npm install
+# # prisma setup pull and migrate
+# RUN npx prisma db pull
+# RUN npx prisma generate
+RUN npm install \
+  npx prisma db pull \
+  npx prisma generate
 
 # Run the application as a non-root user.
 # USER node
 
-# Copy the rest of the source files into the image.
-COPY ./web-app/ .
+
 
 # Expose the port that the application listens on.
 EXPOSE 3000

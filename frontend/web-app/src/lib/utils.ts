@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const API_URL = "http://0.0.0.0:8000"
+const API_URL_SERVER = "http://api-gateway:8000"
 
 // create user createUserAccount
 // typpe ofr formData in json
@@ -56,7 +57,6 @@ export async function loginUser(formData: loginDataType) {
 //   name: string
 // }
 export async function updateNewsSelection(topics: String[]) {
-  const API_TEST_URL = "http://api-gateway:8000";
 
   let requestOptions = {
     method: "POST",
@@ -79,3 +79,36 @@ export async function updateNewsSelection(topics: String[]) {
     return data;
   }
 }
+
+export async function getUserName(token: String | undefined) {
+  let requestOptions = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  const response = await fetch(`${API_URL_SERVER}/user`, requestOptions);
+  if (!response.ok) {
+    return false;
+  } else {
+    const data = await response.json();
+    return data;
+  }
+}
+
+export async function getNewsSelection(token: String | null) {
+  let requestOptions = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  const response = await fetch(`${API_URL}/user/news`, requestOptions);
+  if (!response.ok) {
+    return false;
+  } else {
+    const data = await response.json();
+    return data;
+  }
+}
+

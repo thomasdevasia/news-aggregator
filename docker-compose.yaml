@@ -89,6 +89,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    environment:
+      POSTGRES_URL: "postgresql://postgres:postgres123@postgres:5432/news_app_db?schema=public"
+    depends_on:
+      - postgres
     develop:
       watch:
         - action: rebuild

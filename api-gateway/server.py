@@ -3,7 +3,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
 # import logging
-# import requests
+import requests
 
 AUTH_SERVICE_URL = "http://auth-service:8001"
 USER_SERVICE_URL = "http://user-service:8002"
@@ -63,7 +63,7 @@ async def validate(request: Request):
     print(token)
 
     async with httpx.AsyncClient() as client:
-        response = await client.post(f"{AUTH_SERVICE_URL}/validate", headers={"Authorization": token})
+        response = await client.get(f"{AUTH_SERVICE_URL}/validate", headers={"Authorization": token})
 
     if response.status_code == 200:
         res = response.json()
@@ -71,64 +71,41 @@ async def validate(request: Request):
     else:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-# def validate_token(token):
-#     response = requests.post(f"{AUTH_SERVICE_URL}/validate", headers={"Authorization": token})
-#     if response.status_code == 200:
-#         return response.json()
-#     else:
-#         return False
+
+async def validate_token(token):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{AUTH_SERVICE_URL}/validate", headers={"Authorization": token})
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return False
 
 
-@app.get("/user/{user_path:path}")
+@app.api_route("/user/{user_path:path}", methods=["GET", "POST"])
 async def user(request: Request, user_path: str):
     token = request.headers.get("Authorization")
-
-    try:
+    is_valid = await validate_token(token)
+    user_name = is_valid['payload']['username']
+    if request.method == "GET":
+        if is_valid:
+            try:
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(f"{USER_SERVICE_URL}/{user_name}/{user_path}", headers={"Authorization": token}, follow_redirects=True)
+            except Exception:
+                raise HTTPException(status_code=500, detail="Internal server error")
+        else:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+    if request.method == "POST":
         body = await request.json()
-    except Exception:
-        body = None
+        if is_valid:
+            try:
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(f"{USER_SERVICE_URL}/{user_name}/{user_path}", headers={"Authorization": token}, json=body, follow_redirects=True)
+            except Exception:
+                raise HTTPException(status_code=500, detail="Internal server error")
+        else:
+            raise HTTPException(status_code=401, detail="Unauthorized")
 
-    # is_valid = validate_token(token)
-    try:
-        async with httpx.AsyncClient() as client:
-            if body:
-                response = await client.get(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token}, json=body)
-            else:
-                response = await client.get(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token})
-    except Exception:
-        # print(e)
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-    if response.status_code == 200:
-        return response.json()
-    elif response.status_code == 401:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    elif response.status_code == 404:
-        raise HTTPException(status_code=404, detail="Page not found")
-    else:
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-
-@app.post("/user/{user_path:path}")
-async def user(request: Request, user_path: str):
-    token = request.headers.get("Authorization")
-
-    try:
-        body = await request.json()
-    except Exception:
-        body = None
-
-    # is_valid = validate_token(token)
-    try:
-        async with httpx.AsyncClient() as client:
-            if body:
-                response = await client.post(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token}, json=body)
-            else:
-                response = await client.post(f"{USER_SERVICE_URL}/{user_path}", headers={"Authorization": token})
-    except Exception:
-        # print(e)
-        raise HTTPException(status_code=500, detail="Internal server error")
-    #
     if response.status_code == 200:
         return response.json()
     elif response.status_code == 401:

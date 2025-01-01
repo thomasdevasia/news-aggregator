@@ -1,7 +1,8 @@
 "use client";
 import { Button } from "./ui/button";
 import { useToast } from "../hooks/use-toast";
-import { updateNewsSelection } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { updateNewsSelection, getNewsSelection } from "@/lib/utils";
 
 const topics = [
   { id: "sports", name: "Sports" },
@@ -22,23 +23,27 @@ const topics = [
 export default function NewsSelection() {
 
   const { toast } = useToast();
+  const [currentTopics, setCurrentTopics] = useState<string[]>([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const fetchNewsSelection = async () => {
+      const response = await getNewsSelection(token);
+      console.log(response);
+      if (response) {
+        console.log(response.topics);
+        setCurrentTopics(response.topics);
+      }
+    };
+    fetchNewsSelection();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("form submitted");
-    // print selected topics
-    const formData = new FormData(e.target);
-    // console.log(topics);
-    // for (let topic of topics) {
-    //   console.log(topic.name, formData.get(topic.name));
-    // }
-    let selectedTopics = topics.filter((topic) => {
-      return formData.get(topic.name) === "on";
-    }).map((topic) => topic.name);
-    console.log(selectedTopics);
 
     const sendTopics = async () => {
-      const response = await updateNewsSelection(selectedTopics);
+      const response = await updateNewsSelection(currentTopics);
       if (response) {
         toast({
           variant: "destructive",
@@ -53,13 +58,19 @@ export default function NewsSelection() {
           description: "Failed to save",
         })
       }
-      // console.log(response);
       return response;
     }
     sendTopics();
-    // console.log(sendTopics());
+  };
 
-
+  const handleChange = (itemName: string) => {
+    setCurrentTopics((prev) => {
+      if (prev.includes(itemName)) {
+        return prev.filter((topic) => topic !== itemName);
+      } else {
+        return [...prev, itemName];
+      }
+    });
   };
 
   return (
@@ -74,6 +85,8 @@ export default function NewsSelection() {
               type="checkbox"
               id={topic.id}
               name={topic.name}
+              checked={currentTopics.includes(topic.name)}
+              onChange={() => handleChange(topic.name)}
             />
             <label className="ml-2" htmlFor={topic.id}>{topic.name}</label>
           </div>
