@@ -1,0 +1,19 @@
+services:
+  consumer-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # ports:
+    #   - <any>:<any>
+    # environment:
+    #   - RABBITMQ_USER=${RABBITMQ_USER}
+    #   - RABBITMQ_PASS=${RABBITMQ_PASS}
+    develop:
+      watch:
+        - action: sync
+          path: ./
+          target: /app
+        - action: rebuild
+          path: ./go.mod
+    stdin_open: true
+    tty: true
