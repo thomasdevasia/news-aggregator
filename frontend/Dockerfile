@@ -1,8 +1,4 @@
-ARG NODE_VERSION=21.7.3
-
-FROM node:${NODE_VERSION}-alpine
-
-ENV NODE_ENV development
+FROM node:23-alpine
 
 WORKDIR /code
 
