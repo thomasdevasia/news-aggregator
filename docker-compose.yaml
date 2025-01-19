@@ -115,6 +115,8 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=news_app_db
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
     develop:
       watch:
         - action: rebuild
@@ -125,6 +127,31 @@ services:
     stdin_open: true
     tty: true
 
+  news-collection:
+    build:
+      context: ./newsCollection
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    develop:
+      watch:
+        - action: sync
+          path: ./newsCollection/tsCollectionServer/
+          target: /code
+    stdin_open: true
+    tty: true
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+
+  # only airflow
   airflow-webserver:
     <<: *airflow-common
     command: webserver
