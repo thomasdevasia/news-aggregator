@@ -6,9 +6,15 @@ from airflow.models.dag import DAG
 # Operators; we need this to operate!
 from airflow.operators.python import PythonOperator
 
+import requests
+
+USER_SERVICE_URL = "http://user-service:8002"
+
 
 def call_get_user_news():
-    print("Hello World")
+    print("Calling user service")
+    response = requests.get(f"{USER_SERVICE_URL}/get_latest_news")
+    print(response.json())
 
 
 with DAG(
@@ -20,8 +26,8 @@ with DAG(
         },
         description="DAG calls the endpoint to get news",
         # every 10 minutes
-        schedule_interval=timedelta(minutes=1),
-        start_date=datetime(2024, 12, 30, 18, 2),
+        schedule_interval=timedelta(minutes=5),
+        start_date=datetime(2025, 1, 19, 8, 0),
         catchup=True,
         tags=["something"],
 ) as dag:
