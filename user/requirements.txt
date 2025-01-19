@@ -1,2 +1,3 @@
 fastapi[standard]
+pika
 psycopg2-binary
