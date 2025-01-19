@@ -150,6 +150,25 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
+  
+  consumer-service:
+    build:
+      context: ./queueConsumer
+      dockerfile: Dockerfile
+    # ports:
+    #   - <any>:<any>
+    environment:
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+    develop:
+      watch:
+        - action: sync
+          path: ./queueConsumer/
+          target: /app
+        - action: rebuild
+          path: ./queueConsumer/go.mod
+    stdin_open: true
+    tty: true
 
   # only airflow
   airflow-webserver:
