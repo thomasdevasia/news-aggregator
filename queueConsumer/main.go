@@ -1,75 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-
-	amqp "github.com/rabbitmq/amqp091-go"
 )
-
-type QueueConsumer struct {
-	conn      *amqp.Connection
-	channel   *amqp.Channel
-	queueName string
-}
-
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-	}
-}
-
-func NewQueueConsumer(amqpURL, queueName string) *QueueConsumer {
-	conn, err := amqp.Dial(amqpURL)
-	failOnError(err, "Failed to connect to RabbitMQ")
-
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
-
-	_, err = ch.QueueDeclare(
-		queueName,
-		true,
-		true,
-		false,
-		false,
-		nil,
-	)
-	failOnError(err, "Failed to declare a queue")
-
-	return &QueueConsumer{
-		conn:      conn,
-		channel:   ch,
-		queueName: queueName,
-	}
-}
-
-func (consumer *QueueConsumer) Close() {
-	consumer.channel.Close()
-	consumer.conn.Close()
-}
-
-func (consumer *QueueConsumer) Consume() <-chan amqp.Delivery {
-	messages, err := consumer.channel.Consume(
-		consumer.queueName,
-		"",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-
-	failOnError(err, "Failed to register a consumer")
-
-	return messages
-}
 
 func main() {
 	amqpURL := fmt.Sprintf("amqp://%s:%s@rabbitmq:5672/", os.Getenv("RABBITMQ_USER"), os.Getenv("RABBITMQ_PASS"))
 	queueName := "user.newsCollection"
 	fmt.Println("amqpURL: ", amqpURL)
 	fmt.Println("queueName: ", queueName)
+
+	// just giving time for rabbitmq to start
+	// time.Sleep(30 * time.Second)
 
 	consumer := NewQueueConsumer(amqpURL, queueName)
 	defer consumer.Close()
@@ -81,6 +26,22 @@ func main() {
 	go func() {
 		for message := range messages {
 			log.Printf("Received a message: %s", message.Body)
+			var msg Message
+			err := json.Unmarshal(message.Body, &msg)
+			if err != nil {
+				log.Printf("Error decoding JSON: %s", err)
+				continue
+			}
+			// log.Printf("user_id: %d", msg.User_id)
+			// log.Printf("topics: %v", msg.Topics)
+			payload := Payload{Topics: msg.Topics}
+			// log.Printf("payload: %v", payload)
+			resp, err := RequestNewsCollection(payload)
+			if err != nil {
+				log.Printf("Error requesting news collection: %s", err)
+				continue
+			}
+			log.Printf("Response: %s", resp)
 		}
 	}()
 

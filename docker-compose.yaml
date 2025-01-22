@@ -167,6 +167,8 @@ services:
           target: /app
         - action: rebuild
           path: ./queueConsumer/go.mod
+    depends_on:
+      - rabbitmq
     stdin_open: true
     tty: true
 
