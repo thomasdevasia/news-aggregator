@@ -12,7 +12,7 @@ app.get('/', (req, res) => {
 
 const getFilteredNews = (newsTopics: String[]) => {
   const news = newsData.filter((newsItem) => {
-    return newsTopics.includes(newsItem.type);
+    return newsTopics.includes(newsItem.newsType);
   });
   return news;
 };
