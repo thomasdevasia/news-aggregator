@@ -70,7 +70,7 @@ export async function updateNewsSelection(topics: String[]) {
     }),
   };
   // console.log(requestOptions)
-  const response = await fetch(`${API_URL}/user/news`, requestOptions);
+  const response = await fetch(`${API_URL}/user/news_topic`, requestOptions);
   if (!response.ok) {
     return false;
   }
@@ -112,3 +112,18 @@ export async function getNewsSelection(token: String | null) {
   }
 }
 
+export async function getNews(token: String | null) {
+  let requestOptions = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    }
+  };
+  const response = await fetch(`${API_URL_SERVER}/user/news`, requestOptions);
+  if (!response.ok) {
+    return false;
+  } else {
+    const data = await response.json();
+    return data;
+  }
+}

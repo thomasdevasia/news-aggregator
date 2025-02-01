@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import NewsCollection from "@/components/NewsCollection";
 
 export default function Home() {
   return (
@@ -8,6 +9,10 @@ export default function Home() {
       <Link href="/home/settings">
         <Button> Settings </Button>
       </Link>
+      <Link href="/home/chat">
+        <Button> Chat </Button>
+      </Link>
+      <NewsCollection />
     </div>
   );
 }
