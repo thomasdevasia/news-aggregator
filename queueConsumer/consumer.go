@@ -13,8 +13,8 @@ type QueueConsumer struct {
 }
 
 type Message struct {
-	User_id int      `json:"user_id"`
-	Topics  []string `json:"topics"`
+	UserName string   `json:"userName"`
+	Topics   []string `json:"topics"`
 }
 
 func failOnError(err error, msg string) {

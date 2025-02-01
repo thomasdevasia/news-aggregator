@@ -17,6 +17,17 @@ CREATE TABLE IF NOT EXISTS news_topic (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+CREATE TABLE IF NOT EXISTS news_collection (
+  id SERIAL PRIMARY KEY,
+  heading VARCHAR(100) NOT NULL,
+  data TEXT NOT NULL,
+  news_type VARCHAR(100) NOT NULL,
+  source VARCHAR(100) NOT NULL,
+  date_created date NOT NULL,
+  user_id INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 -- INSERT INTO users (username, email, password) VALUES 
 --     ('admin', 'admin@g.com', 'admin'), 
 --     ('john_doe', 'john@example.com', 'john123'), 

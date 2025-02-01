@@ -37,11 +37,18 @@ func main() {
 			payload := Payload{Topics: msg.Topics}
 			// log.Printf("payload: %v", payload)
 			resp, err := RequestNewsCollection(payload)
+			log.Printf("Got %d news back", len(resp))
 			if err != nil {
 				log.Printf("Error requesting news collection: %s", err)
 				continue
 			}
-			log.Printf("Response: %s", resp)
+			// log.Printf("Response: %s", resp)
+			_, err = sendNews(resp, msg.UserName)
+			if err != nil {
+				log.Printf("Error sending news: %s", err)
+				continue
+			}
+			// log.Printf("Response: %s", resp)
 		}
 	}()
 

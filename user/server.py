@@ -1,10 +1,12 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 import json
 # import httpx
 import psycopg2
 import os
 import pika
+from datetime import datetime
 
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
@@ -28,6 +30,25 @@ def get_user_info(username):
         cursor = conn.cursor()
         cursor.execute(
             f"SELECT id, username, name, email FROM users WHERE username = '{username}'")
+        user = cursor.fetchone()
+        conn.close()
+        return user
+    except Exception as e:
+        print(e)
+        return None
+
+
+def get_user_info_by_id(user_id):
+    try:
+        conn = psycopg2.connect(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME
+        )
+        cursor = conn.cursor()
+        cursor.execute(f'SELECT id, username, name, email FROM users WHERE id = {user_id}')
         user = cursor.fetchone()
         conn.close()
         return user
@@ -81,6 +102,25 @@ def get_all_userid() -> list[str]:
         return None
 
 
+def get_all_user_name() -> list[str]:
+    try:
+        conn = psycopg2.connect(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT username FROM users")
+        users = cursor.fetchall()
+        conn.close()
+        return users
+    except Exception as e:
+        print(e)
+        return None
+
+
 def get_news_topic(user_id: str) -> list[str]:
     try:
         conn = psycopg2.connect(
@@ -98,6 +138,55 @@ def get_news_topic(user_id: str) -> list[str]:
             return topics[0]
         else:
             return ([])
+    except Exception as e:
+        print(e)
+        return None
+
+
+class NewsItem(BaseModel):
+    source: str
+    heading: str
+    datetime: str
+    newsType: str
+    data: str
+
+
+def save_news_db(user_id: str, news: list[NewsItem]):
+    try:
+        conn = psycopg2.connect(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME
+        )
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO news_collection (user_id, source, heading, date_created, news_type, data) VALUES (%s, %s, %s, %s, %s, %s)",
+            (user_id, news['source'], news['heading'], datetime.now(), news['newsType'], news['data'])
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(e)
+        return False
+    return True
+
+
+def get_all_news_db(user_id: str):
+    try:
+        conn = psycopg2.connect(
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT * from news_collection where user_id=%s", (user_id,))
+        news = cursor.fetchall()
+        conn.close()
+        return news
     except Exception as e:
         print(e)
         return None
@@ -136,6 +225,7 @@ def read_root(request: Request):
     return response
 
 
+# user info and details
 @app.get("/{user_name}/")
 def get_user(request: Request, user_name: str):
     print(user_name)
@@ -146,7 +236,8 @@ def get_user(request: Request, user_name: str):
     return JSONResponse(content=response, status_code=200)
 
 
-@app.get("/{user_name}/news")
+# return user selected news topics
+@app.get("/{user_name}/news_topic")
 def get_news(request: Request, user_name: str):
     user_info = get_user_info(user_name)
     if not user_info:
@@ -173,7 +264,8 @@ def get_news(request: Request, user_name: str):
         return {"message": "Error fetching news selection"}
 
 
-@app.post("/{user_name}/news")
+# updating user news selection
+@app.post("/{user_name}/news_topic")
 async def news_action(request: Request, user_name: str):
 
     body = await request.json()
@@ -187,12 +279,14 @@ async def news_action(request: Request, user_name: str):
             return {"message": "News selection update failed"}
 
 
+# runs news collection for all users
 @app.get("/get_latest_news")
 async def get_latest_news():
     users = get_all_userid()
     for user in users:
         news_topic = get_news_topic(user[0])
-        payload = json.dumps({"user_id": user[0], "topics": news_topic})
+        user_name = get_user_info_by_id(user[0])[1]
+        payload = json.dumps({"userName": user_name, "topics": news_topic})
         try:
             connection = pika.BlockingConnection(pika.ConnectionParameters(
                 host='rabbitmq',
@@ -206,4 +300,48 @@ async def get_latest_news():
             response = {"message": "Error connecting to RabbitMQ"}
             return JSONResponse(content=response, status_code=500)
     response = {"message": "News collection successful queued"}
+    return JSONResponse(content=response, status_code=200)
+
+
+# save user news
+@app.post("/{user_name}/news")
+async def save_news(request: Request, user_name: str):
+    body = await request.json()
+    user_info = get_user_info(user_name)
+    if "action" not in body:
+        response = {"message": "Action not provided"}
+        return JSONResponse(content=response, status_code=400)
+    if body["action"] == "save":
+        res = save_news_db(user_info[0], body["news"])
+        if res:
+            response = {"message": "News saved successfully"}
+        else:
+            response = {"message": "News save failed"}
+            return JSONResponse(content=response, status_code=500)
+    else:
+        response = {"message": "Invalid action"}
+        return JSONResponse(content=response, status_code=400)
+    return JSONResponse(content=response, status_code=200)
+
+# get all news for user
+
+
+@app.get("/{user_name}/news")
+async def get_all_news(request: Request, user_name: str):
+    user_info = get_user_info(user_name)
+    all_news = get_all_news_db(user_info[0])
+    response = {
+        "allNews": []
+    }
+    for news in all_news:
+        response['allNews'].append(
+            {
+                "news_id": news[0],
+                "heading": news[1],
+                "data": news[2],
+                "newsType": news[3],
+                "source": news[4],
+                "dateCreated": str(news[5])
+            }
+        )
     return JSONResponse(content=response, status_code=200)

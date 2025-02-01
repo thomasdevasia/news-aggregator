@@ -22,20 +22,22 @@ type NewsItem struct {
 	Data     string `json:"data"`
 }
 
-func RequestNewsCollection(payload Payload) (string, error) {
+func RequestNewsCollection(payload Payload) ([]NewsItem, error) {
 	collectionService := "http://news-collection:3001"
+
+	errorNews := []NewsItem{}
 
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		return "", errors.New("error marshalling payload")
+		return errorNews, errors.New("error marshalling payload")
 	}
-	log.Printf("jsonPayload: %s", string(jsonPayload))
+	// log.Printf("jsonPayload: %s", string(jsonPayload))
 
 	// resp, err := http.Post("http://news-collection:3001/getNews", "application/json", bytes.NewBuffer(jsonPayload))
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/getNews", collectionService), bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		log.Printf("error creating request to news-collection: %s", err)
-		return "", errors.New("error creating request to news-collection")
+		return errorNews, errors.New("error creating request to news-collection")
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -45,7 +47,7 @@ func RequestNewsCollection(payload Payload) (string, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("error making request to news-collection: %s", err)
-		return "", errors.New("error making request to news-collection")
+		return errorNews, errors.New("error making request to news-collection")
 	}
 
 	defer resp.Body.Close()
@@ -54,12 +56,12 @@ func RequestNewsCollection(payload Payload) (string, error) {
 	var newsItems []NewsItem
 	err = json.Unmarshal(body, &newsItems)
 	if err != nil {
-		log.Printf("error unmarshalling response: %s", err)
-		return "", errors.New("error unmarshalling response")
+		log.Printf("error unmarshalling response news-collection: %s", err)
+		return errorNews, errors.New("error unmarshalling response")
 	}
 
-	count := len(newsItems)
-	log.Printf("Received %d news items", count)
+	// count := len(newsItems)
+	// log.Printf("Received %d news items", count)
 	// for _, newsItem := range newsItems {
 	// 	log.Printf("Source: %s", newsItem.Source)
 	// 	log.Printf("Heading: %s", newsItem.Heading)
@@ -69,5 +71,5 @@ func RequestNewsCollection(payload Payload) (string, error) {
 	// 	log.Printf("---")
 	// }
 	//
-	return "200 OK", nil
+	return newsItems, nil
 }
