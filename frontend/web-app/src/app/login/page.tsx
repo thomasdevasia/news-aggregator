@@ -41,6 +41,7 @@ export default function Login() {
     if (data.token) {
       document.cookie = `token=${data.token}`;
       localStorage.setItem("token", data.token);
+      localStorage.setItem("username", formData.get("username") as string);
       console.log("Token saved in cookies");
       router.push("/home");
     }
@@ -57,11 +58,13 @@ export default function Login() {
       password: formData.get("password"),
     };
     const data = await loginUser(userData);
-    console.log("Data: ", data);
+    // console.log("Data: ", data);
+    // console.log("Username: ", formData.get("username"));
 
     if (data.token) {
       document.cookie = `token=${data.token}`;
       localStorage.setItem("token", data.token);
+      localStorage.setItem("username", formData.get("username") as string);
       console.log("Token saved in cookies");
       router.push("/home");
     }

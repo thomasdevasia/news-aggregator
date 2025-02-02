@@ -23,7 +23,7 @@ export default async function NewsCollection() {
   console.log(token);
   const response = await getNews(token);
   const allNews: NewsType[] = response.allNews;
-  console.log(allNews);
+  // console.log(allNews);
   return (
     <div>
       <h1 className="text-2xl">News Collection</h1>

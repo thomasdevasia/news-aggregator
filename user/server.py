@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 import json
 # import httpx
 import psycopg2
@@ -194,6 +195,18 @@ def get_all_news_db(user_id: str):
 
 app = FastAPI()
 
+origins = [
+    "http://0.0.0.0:3000",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # @app.middleware("http")
 # async def auth_middleware(request, call_next):
@@ -213,6 +226,7 @@ app = FastAPI()
 #     else:
 #         return JSONResponse(status_code=401, content={"message": "Unauthorized"})
 #
+
 
 @app.get("/")
 def read_root(request: Request):
@@ -323,11 +337,10 @@ async def save_news(request: Request, user_name: str):
         return JSONResponse(content=response, status_code=400)
     return JSONResponse(content=response, status_code=200)
 
+
 # get all news for user
-
-
 @app.get("/{user_name}/news")
-async def get_all_news(request: Request, user_name: str):
+async def get_all_news(user_name: str):
     user_info = get_user_info(user_name)
     all_news = get_all_news_db(user_info[0])
     response = {
@@ -345,3 +358,20 @@ async def get_all_news(request: Request, user_name: str):
             }
         )
     return JSONResponse(content=response, status_code=200)
+
+
+# chat websocket with ai
+@app.websocket("/{user_name}/chat")
+async def chat_websocket_endpoint(websocket: WebSocket, user_name: str):
+    print(f'websocket running for {user_name}')
+    await websocket.accept()
+    try:
+        while True:
+            response = await websocket.receive_text()
+            data = json.loads(response)
+            print(data)
+            response = {"message": "Message received", "data": 'acknowledged'}
+            await websocket.send_text(json.dumps(response))
+    except WebSocketDisconnect:
+        # await websocket.close()
+        print(f'websocket closed for {user_name}')
