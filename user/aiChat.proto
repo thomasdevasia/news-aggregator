@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+service AiChat {
+  rpc SaveToVectorDb (userData) returns (SaveToVectorDbResponse) {}
+  rpc Chat (prompt) returns (stream ChatResponse) {}
+}
+
+message userData {
+    string userName = 1;
+    string heading = 2;
+    string data = 3;
+    string newsDate = 4;
+  }
+
+message SaveToVectorDbResponse {
+    string response = 1;
+    bool status = 2;
+  }
+
+message prompt {
+    string userName = 1;
+    string prompt = 2;
+  }
+
+message ChatResponse {
+    string response = 1;
+    bool status = 2;
+    bool done = 3;
+  }

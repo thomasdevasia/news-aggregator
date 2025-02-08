@@ -8,6 +8,9 @@ import psycopg2
 import os
 import pika
 from datetime import datetime
+import aiChat_pb2
+import aiChat_pb2_grpc
+import grpc
 
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
@@ -152,6 +155,14 @@ class NewsItem(BaseModel):
     data: str
 
 
+def save_to_vector_db(user_name: str, news: NewsItem):
+    print('calling grpc')
+    with grpc.insecure_channel('ml-service:50051') as channel:
+        stub = aiChat_pb2_grpc.AiChatStub(channel)
+        response = stub.SaveToVectorDb(aiChat_pb2.userData(userName=user_name, heading=news['heading'], data=news['data'], newsDate=news['datetime']))
+        print("SaveToVectorDb client received: " + response.response)
+
+
 def save_news_db(user_id: str, news: list[NewsItem]):
     try:
         conn = psycopg2.connect(
@@ -172,6 +183,15 @@ def save_news_db(user_id: str, news: list[NewsItem]):
         print(e)
         return False
     return True
+
+
+def send_chat_to_ai(user_name: str, prompt: str):
+    print('calling grpc ai chat')
+    with grpc.insecure_channel('ml-service:50051') as channel:
+        stub = aiChat_pb2_grpc.AiChatStub(channel)
+        for response in stub.Chat(aiChat_pb2.prompt(userName=user_name, prompt=prompt)):
+            # print(response)
+            yield response
 
 
 def get_all_news_db(user_id: str):
@@ -327,6 +347,11 @@ async def save_news(request: Request, user_name: str):
         return JSONResponse(content=response, status_code=400)
     if body["action"] == "save":
         res = save_news_db(user_info[0], body["news"])
+        # save to vectordb grpc
+        try:
+            save_to_vector_db(user_name, body["news"])
+        except Exception:
+            print("vector database save error")
         if res:
             response = {"message": "News saved successfully"}
         else:
@@ -370,8 +395,10 @@ async def chat_websocket_endpoint(websocket: WebSocket, user_name: str):
             response = await websocket.receive_text()
             data = json.loads(response)
             print(data)
-            response = {"message": "Message received", "data": 'acknowledged'}
-            await websocket.send_text(json.dumps(response))
+            for chatResponse in send_chat_to_ai(user_name, data['message']):
+                # print(chatResponse)
+                response = {"status": True, "response": chatResponse.response, "done": chatResponse.done}
+                await websocket.send_text(json.dumps(response))
     except WebSocketDisconnect:
         # await websocket.close()
         print(f'websocket closed for {user_name}')

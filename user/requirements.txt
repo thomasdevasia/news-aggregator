@@ -1,3 +1,5 @@
 fastapi[standard]
 pika
 psycopg2-binary
+grpcio
+grpcio-tools
