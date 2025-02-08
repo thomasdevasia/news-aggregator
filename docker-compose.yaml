@@ -172,7 +172,31 @@ services:
     stdin_open: true
     tty: true
 
-  # only airflow
+  ml-service:
+    build:
+      context: ./mlService
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./mlService/requirements.txt
+        - action: sync
+          path: ./mlService
+          target: /app
+    stdin_open: true
+    tty: true
+
+  vectordb:
+    image: chromadb/chroma
+    ports:
+      - "8005:8000"
+    volumes:
+      - ./vectorDb/data:/chroma/chroma
+
+
+  # only airflow end
   airflow-webserver:
     <<: *airflow-common
     command: webserver
