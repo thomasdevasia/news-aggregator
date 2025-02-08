@@ -15,6 +15,7 @@ export default function ChatBox() {
     // { id: 3, message: "How are you?", user: "User1" },
   ]);
   const [newMessage, setNewMessage] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
   // const [userName, setUserName] = useState("");
 
   const handleSendMessage = () => {
@@ -23,15 +24,16 @@ export default function ChatBox() {
       const newMsg = {
         id: 0,
         message: newMessage,
-        user: "User1",
+        user: "Me",
       };
       setMessages((prev) => {
         newMsg.id = prev.length + 1;
         return [...prev, newMsg];
       });
-      console.log(messages);
+      // console.log(messages);
       setNewMessage("");
       if (socket) {
+        setIsStreaming(true);
         socket.send(JSON.stringify(newMsg));
       } else {
         // setMessages([...messages, newMsg]);
@@ -59,20 +61,31 @@ export default function ChatBox() {
         console.log("Connected to chat server");
       };
       socket.onmessage = (event) => {
-        console.log("Received message:", event.data);
+        // console.log("Received message:", event.data);
         const resp = JSON.parse(event.data);
-        const data = resp.data;
-        console.log(data);
-        // setMessages([...messages, newMsg]);
-        // console.log(messages);
-        setMessages((prev) => {
-          const newMsg = {
-            id: prev.length + 1,
-            message: data,
-            user: "AI",
-          };
-          return [...prev, newMsg];
-        });
+        if (resp.done) {
+          setIsStreaming(false);
+        } else {
+          setMessages((prev) => {
+            if (prev.length > 0 && prev[prev.length - 1].user === "AI") {
+              const lastMsg = prev[prev.length - 1];
+              const updatedMsg = {
+                ...lastMsg,
+                message: lastMsg.message + resp.response,
+              };
+              return [...prev.slice(0, prev.length - 1), updatedMsg];
+            } else {
+              return [
+                ...prev,
+                {
+                  id: prev.length + 1,
+                  message: resp.response,
+                  user: "AI",
+                },
+              ];
+            }
+          });
+        }
       };
       setSocket(socket);
     } else {
@@ -117,6 +130,7 @@ export default function ChatBox() {
             }
           }}
           placeholder="Type your message..."
+          disabled={isStreaming}
         />
         <button
           className="ml-2 p-2 bg-slate-500 text-white rounded"
