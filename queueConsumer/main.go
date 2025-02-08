@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 func main() {
@@ -14,7 +15,8 @@ func main() {
 	fmt.Println("queueName: ", queueName)
 
 	// just giving time for rabbitmq to start
-	// time.Sleep(30 * time.Second)
+	time.Sleep(30 * time.Second)
+	log.Printf("Connecting to RabbitMQ at %s", amqpURL)
 
 	consumer := NewQueueConsumer(amqpURL, queueName)
 	defer consumer.Close()
