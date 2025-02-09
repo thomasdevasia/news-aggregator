@@ -12,7 +12,7 @@ from chromadb import Documents, EmbeddingFunction, Embeddings
 OLLAMA_URL = 'http://host.docker.internal:11434/api/'
 
 
-def get_embedding(prompt):
+def create_embedding(prompt):
     data = {
         # "model": "llama3.2:1b",
         "model": "granite-embedding:278m",
@@ -36,10 +36,10 @@ class CustomEmbeddingFunction(EmbeddingFunction):
 
 async def save_to_vector_db(newsData):
     client = await chromadb.AsyncHttpClient(host='vectordb', port=8000)
-    emf = CustomEmbeddingFunction(get_embedding)
+    emf = CustomEmbeddingFunction(create_embedding)
     collection = await client.get_or_create_collection(newsData.userName, embedding_function=emf)
-    print(newsData.heading)
-    print(newsData.data)
+    # print(newsData.heading)
+    # print(newsData.data)
     await collection.add(
         documents=[newsData.data],
         metadatas=[{
@@ -50,10 +50,45 @@ async def save_to_vector_db(newsData):
     )
 
 
+async def vector_search(userName, prompt):
+    client = await chromadb.AsyncHttpClient(host='vectordb', port=8000)
+    emf = CustomEmbeddingFunction(create_embedding)
+    collection = await client.get_collection(userName, embedding_function=emf)
+    result = await collection.query(
+        query_texts=[prompt],
+        n_results=3
+    )
+    return result
+
+
 async def chat_ollama(userName, prompt):
+    searchResult = await vector_search(userName, prompt)
+    if len(searchResult['ids'][0]) > 0:
+        searchContext = ""
+        for i in range(len(searchResult['ids'][0])):
+            searchContext = searchContext + f"""
+            News Heading: {searchResult['metadatas'][0][i]['heading']}
+            Date of News: {searchResult['metadatas'][0][i]['date'].split('T')[0]}
+            News Content: {searchResult['documents'][0][i]}
+            -------------------------------------------------------------------------------------------
+            """
+    else:
+        searchContext = "There is no news available for the user"
+    template = f"""
+        Use the following pieces of context to answer the question at the end.
+        If you don't know the answer, just say that you don't know, don't try to make up an answer.
+        Use three sentences maximum and keep the answer as concise as possible.
+        Always say "thanks for asking!" at the end of the answer. You are a news chatbot. Users cant see the context you are provided.
+        Just answer about the information on the news and greetings. Each news is seperated by multiple '-'
+
+        News from the users Database:
+        {searchContext}
+
+        Question: {prompt}
+    """
     data = {
         "model": "llama3.2:1b",
-        "prompt": prompt
+        "prompt": template
     }
     # response = httpx.post(OLLAMA_URL + 'generate', json=data)
     async with httpx.AsyncClient() as client:
