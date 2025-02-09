@@ -321,6 +321,8 @@ async def get_latest_news():
         news_topic = get_news_topic(user[0])
         user_name = get_user_info_by_id(user[0])[1]
         payload = json.dumps({"userName": user_name, "topics": news_topic})
+        if len(news_topic) == 0:
+            continue
         try:
             connection = pika.BlockingConnection(pika.ConnectionParameters(
                 host='rabbitmq',
