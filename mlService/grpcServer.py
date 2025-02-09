@@ -62,17 +62,20 @@ async def vector_search(userName, prompt):
 
 
 async def chat_ollama(userName, prompt):
-    searchResult = await vector_search(userName, prompt)
-    if len(searchResult['ids'][0]) > 0:
-        searchContext = ""
-        for i in range(len(searchResult['ids'][0])):
-            searchContext = searchContext + f"""
-            News Heading: {searchResult['metadatas'][0][i]['heading']}
-            Date of News: {searchResult['metadatas'][0][i]['date'].split('T')[0]}
-            News Content: {searchResult['documents'][0][i]}
-            -------------------------------------------------------------------------------------------
-            """
-    else:
+    try:
+        searchResult = await vector_search(userName, prompt)
+        if len(searchResult['ids'][0]) > 0:
+            searchContext = ""
+            for i in range(len(searchResult['ids'][0])):
+                searchContext = searchContext + f"""
+                News Heading: {searchResult['metadatas'][0][i]['heading']}
+                Date of News: {searchResult['metadatas'][0][i]['date'].split('T')[0]}
+                News Content: {searchResult['documents'][0][i]}
+                -------------------------------------------------------------------------------------------
+                """
+        else:
+            searchContext = "There is no news available for the user"
+    except Exception:
         searchContext = "There is no news available for the user"
     template = f"""
         Use the following pieces of context to answer the question at the end.
