@@ -103,7 +103,7 @@ export async function getNewsSelection(token: String | null) {
       Authorization: `Bearer ${token}`,
     },
   };
-  const response = await fetch(`${API_URL}/user/news`, requestOptions);
+  const response = await fetch(`${API_URL}/user/news_topic`, requestOptions);
   if (!response.ok) {
     return false;
   } else {

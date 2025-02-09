@@ -21,7 +21,6 @@ const topics = [
 ];
 
 export default function NewsSelection() {
-
   const { toast } = useToast();
   const [currentTopics, setCurrentTopics] = useState<string[]>([]);
 
@@ -29,9 +28,9 @@ export default function NewsSelection() {
     const token = localStorage.getItem("token");
     const fetchNewsSelection = async () => {
       const response = await getNewsSelection(token);
-      console.log(response);
+      // console.log("response", response);
       if (response) {
-        console.log(response.topics);
+        // console.log(response.topics);
         setCurrentTopics(response.topics);
       }
     };
@@ -41,7 +40,6 @@ export default function NewsSelection() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("form submitted");
-
     const sendTopics = async () => {
       const response = await updateNewsSelection(currentTopics);
       if (response) {
@@ -49,17 +47,16 @@ export default function NewsSelection() {
           variant: "destructive",
           title: "Request to save",
           description: "Saved successfully",
-        })
-      }
-      else {
+        });
+      } else {
         toast({
           variant: "destructive",
           title: "Request to save",
           description: "Failed to save",
-        })
+        });
       }
       return response;
-    }
+    };
     sendTopics();
   };
 
@@ -88,7 +85,9 @@ export default function NewsSelection() {
               checked={currentTopics.includes(topic.name)}
               onChange={() => handleChange(topic.name)}
             />
-            <label className="ml-2" htmlFor={topic.id}>{topic.name}</label>
+            <label className="ml-2" htmlFor={topic.id}>
+              {topic.name}
+            </label>
           </div>
         ))}
         <Button type="submit" className="mt-3">
