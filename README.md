@@ -2,7 +2,9 @@
 
 ## Project Aim
 
-The aim of this project is to create a sophisticated news aggregator platform that collects news from various sources, personalizes content for users, and provides an interactive news consumption experience. The platform will use a microservices architecture for scalability and flexibility.
+This project aims to develop a sophisticated and scalable news aggregator platform that collects, curates, and personalizes news from various sources, offering users an engaging and interactive news consumption experience. By leveraging a microservices architecture, the platform ensures modularity, scalability, and flexibility, enabling seamless integration of different technologies and services.
+
+Beyond serving as a functional news aggregator, this project is designed as a learning-oriented framework. The core objective is to create a modular foundation where different technology stacks can be swapped within microservices to evaluate their performance, efficiency, and interoperability. This will provide valuable insights into how different technologies perform under real-world conditions, facilitating experimentation and comparison.
 
 ## How to Run
 
@@ -10,10 +12,6 @@ Since the all of the technologies used in this project are containerized, you ca
 
 ```bash
 docker-compose up -d
-```
-
-```
-
 ```
 
 ## Service Breakdown
@@ -64,3 +62,9 @@ docker-compose up -d
     - Manages the LLM model for generating responses.
     - Uses open-source models like Ollama and IBM's Granite
       Tech Stack: Grpc,Ollama, Langchain, Chroma db, LLM
+
+## Service under Development
+
+- Logging and Monitoring Service LGTM stack.
+- Adding search sesrvice usning Elastic Search.
+- Building AI Agent for collecting news articles.
