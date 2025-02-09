@@ -55,7 +55,11 @@ docker-compose up -d
    - Message broker for cretating queues for performing asynchronous tasks.
    - It mostly manages the communication between the services for news collection.
      Tech Stack: RabbitMQ, Docker
-10. Chat Service
+10. Consumer Service
+    - The service uses Golang to consume messages from RabbitMQ and process them.
+    - It processes the news articles and stores them in the relational Db and a Vector Database.
+      Tech Stack: Golang, Docker, RabbitMQ, Postgres, Chroma DB
+11. Chat Service
     - Provides AI-powered conversations about news articles using RAG.
     - Manages the LLM model for generating responses.
     - Uses open-source models like Ollama and IBM's Granite
