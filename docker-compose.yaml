@@ -195,6 +195,22 @@ services:
     volumes:
       - ./vectorDb/data:/chroma/chroma
 
+  # remove resources if need to run on CPU
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
+  #   volumes:
+  #     - ./:/root/.ollama
+  #   ports:
+  #     - "11434:11434"
+  #
 
   # only airflow end
   airflow-webserver:
