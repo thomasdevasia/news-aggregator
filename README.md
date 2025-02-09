@@ -4,7 +4,7 @@
 
 This project aims to develop a sophisticated and scalable news aggregator platform that collects, curates, and personalizes news from various sources, offering users an engaging and interactive news consumption experience. By leveraging a microservices architecture, the platform ensures modularity, scalability, and flexibility, enabling seamless integration of different technologies and services.
 
-Beyond serving as a functional news aggregator, this project is designed as a learning-oriented framework. The core objective is to create a modular foundation where different technology stacks can be swapped within microservices to evaluate their performance, efficiency, and interoperability. This will provide valuable insights into how different technologies perform under real-world conditions, facilitating experimentation and comparison.
+Beyond serving as a functional news aggregator, this project is designed as a learning-oriented framework. The core objective is to create a modular foundation where different technology stacks can be swapped within microservices to evaluate their performance, efficiency, and interoperability. This will provide valuable insights into how different technologies perform under real-world conditions, facilitating learning, experimentation and comparison.
 
 ## How to Run
 
