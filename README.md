@@ -1,4 +1,4 @@
-# News Aggregator Project Summary
+# Intelligent News Aggregator Platform Summary
 
 ## Project Aim
 
